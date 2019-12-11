@@ -1,26 +1,68 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import axios from 'axios'
+import "./App.css";
 
-const App: React.FC = () => {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import SearchBox from './components/SearchBox'
+import Scroll from './components/Scroll'
+import CardList from "./components/CardList";
+
+export interface IRobot {
+	name: string;
+	id: number;
+	email: string;
 }
+
+interface IAppProps {
+}
+
+interface IAppState {
+	robots: Array<IRobot>;
+	searchfield: string;
+}
+
+class App extends React.Component<IAppProps, IAppState> {
+
+	constructor(props: IAppProps) {
+		super(props)
+		this.state = {
+			robots: [],
+			searchfield: ''
+		}
+	}
+
+	componentDidMount(): void {
+		axios('https://jsonplaceholder.typicode.com/users')
+			.then(res => {
+				const users = res.data
+				this.setState({ robots: users })
+			})
+	}
+
+	onSearchChange = (event: React.SyntheticEvent<HTMLInputElement>): void => {
+		this.setState({
+			searchfield: event.currentTarget.value
+		})
+	}
+
+	
+	render(): JSX.Element {
+		const { robots, searchfield } = this.state
+			const filteredRobots = robots.filter(robot => {
+				return robot.name.toLowerCase().includes(searchfield.toLowerCase())
+			})
+
+		return !robots.length ?
+			<h1>Loading...</h1> :
+			(
+				<div className="App tc">
+					<h1 className="f1">RoboFriends</h1>
+					<SearchBox searchChange={this.onSearchChange} />
+					<Scroll>
+						<CardList robots={filteredRobots} />
+					</Scroll>
+				</div>
+			);
+	}
+};
 
 export default App;
